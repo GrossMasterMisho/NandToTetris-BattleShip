@@ -1,0 +1,24 @@
+class Randomizer {
+    static int seed;
+
+    function void setSeed(int x, int y) {
+        let seed = x * y - y;
+        return;
+    }
+
+    function int getRandom(int offset) {
+        var int rand;
+        let rand = seed + 12134;
+        return Randomizer.mod(rand, offset);
+    }
+
+    function int mod(int a, int b) {
+        if (b = 0) {
+            return 0;
+        }
+        if (a < b) {
+            return a;
+        }
+        return a - ((a / b) * b);
+    }
+}

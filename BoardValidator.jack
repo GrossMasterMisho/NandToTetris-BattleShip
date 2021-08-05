@@ -1,0 +1,293 @@
+class BoardValidator {
+
+    function boolean validate(Board board) {
+        var int i, j;
+        let i = 0;
+        while ((i < board.getRows())) {
+            let j = 0;
+            while (j < board.getColumns()) {
+                if (~(BoardValidator.validateSquare(board, i, j))) {
+                    do BoardValidator.printErrorOnSquare(i, j);
+                    return false;
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+
+        return BoardValidator.validateShips(board);
+    }
+
+    function boolean validateSquare(Board board, int x, int y) {
+        if (~(board.squareFilled(x, y))) {
+            return true;
+        }
+
+        if (x > 0) {
+
+            if (y > 0) {
+                if (board.squareFilled(x-1, y) & board.squareFilled(x, y-1)) {
+                    return false;
+                }
+
+                if (board.squareFilled(x-1,y-1)) {
+                    return false;
+                }
+            }
+
+            if (y < (board.getColumns() - 1)) {
+                if (board.squareFilled(x-1, y) & board.squareFilled(x, y+1)) {
+                    return false;
+                }
+
+                if (board.squareFilled(x-1,y+1)) {
+                    return false;
+                }
+            }
+        }
+
+        if (x < (board.getRows() - 1)) {
+
+            if (y > 0) {
+                if (board.squareFilled(x+1, y) & board.squareFilled(x, y-1)) {
+                    return false;
+                }
+                if (board.squareFilled(x+1, y - 1)) {
+                    return false;
+                }
+            }
+
+            if (y < (board.getColumns() - 1)) {
+                if (board.squareFilled(x+1, y) & board.squareFilled(x, y+1)) {
+                    return false;
+                }
+                if (board.squareFilled(x+1, y + 1)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function boolean validateShips(Board board) {
+        var int i, j, size;
+        var Matrix checkedPoints;
+        var Array shipLengths;
+        let shipLengths = Array.new(6);
+        let checkedPoints = Matrix.new(board.getRows(), board.getColumns());
+        let i = 0;
+        let shipLengths[1] = 2;
+        let shipLengths[2] = 2;
+        let shipLengths[3] = 1;
+        let shipLengths[4] = 1;
+        let shipLengths[5] = 1;
+        while (i < board.getRows()) {
+            let j = 0;
+            while (j < board.getColumns()) {
+                if (~(checkedPoints.get(i, j))) {
+                    if (board.squareFilled(i, j)) {
+                        let size = BoardValidator.getShipLength(board, i, j, checkedPoints);
+
+                        if ((size < 1) | (size > 5)) {
+                            do BoardValidator.printShipLengthError(size);
+                            return false;
+                        }
+                        
+                        if (shipLengths[size] = 0) {
+                            do BoardValidator.moreShipsThanRequired(size);
+                            return false;
+                        }
+                        let shipLengths[size] = shipLengths[size] - 1;
+                    
+                    } else {
+                        do checkedPoints.set(i, j , true);
+                    }
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+
+        let i = 1;
+        while (i < 6) {
+            if (shipLengths[i] > 0) {
+                do BoardValidator.lessShipsThanRequired(i);
+                return false;
+            }
+            let i = i + 1;
+        }
+
+        return true;
+    }
+
+    function int getShipLength(Board board, int x, int y, Matrix checkedPoints) {
+        var int length, i, j;
+        let length = 1;
+        do checkedPoints.set(x, y, true);
+
+        let i = 1;
+        while ((x + i) < board.getRows()) {
+            if (board.squareFilled(x + i, y)) {
+                let length = length + 1;
+                do checkedPoints.set(x + i, y, true);
+                let i = i + 1;
+            } else {
+                let i = board.getRows();
+            }
+        }
+
+        let j = 1;
+        while ((y + j) < board.getColumns()) {
+            if (board.squareFilled(x, y + j)) {
+                let length = length + 1;
+                do checkedPoints.set(x, y + j, true);
+                let j = j + 1;
+            } else {
+                let j = board.getColumns();
+            }
+        }
+
+
+        return length;
+    }
+
+    function boolean shipIsVertical(Board board, int x, int y, int size) {
+        if (size = 1) {
+            return true;
+        }
+
+        if ((x + 1) < board.getRows()) {
+            return board.squareFilled(x + 1, y);
+        }
+
+        return false;
+    }
+
+    function Array getShips(Board board) {
+        var int i, j, size, k;
+        var Matrix checkedPoints;
+        var Array ships;
+        let ships = Array.new(7);
+        let checkedPoints = Matrix.new(board.getRows(), board.getColumns());
+        let i = 0;
+        let k = 0;
+        while (i < board.getRows()) {
+            let j = 0;
+            while (j < board.getColumns()) {
+                if (~(checkedPoints.get(i, j))) {
+                    if (board.squareFilled(i, j)) {
+                        let size = BoardValidator.getShipLength(board, i, j, checkedPoints);
+                        let ships[k] = Ship.new(size, i, j, BoardValidator.shipIsVertical(board, i, j, size));
+                        let k = k + 1;
+                    } 
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        return ships;
+    }
+
+    function void printErrorOnSquare(int x, int y) {
+        do Output.moveCursor(0,0);
+        do BoardValidator.printString("Error: Point (");
+        do BoardValidator.printInt(x);
+        do BoardValidator.printString(", ");
+        do BoardValidator.printInt(y);
+        do BoardValidator.printString(");");
+        return;
+    }
+
+    function void printShipLengthError(int size) {
+        do Output.moveCursor(0,0);
+        do BoardValidator.printString("Error: Array has size ");
+        do BoardValidator.printInt(size);
+        do BoardValidator.printString(".");
+        return;
+    }
+
+    function void moreShipsThanRequired(int size) {
+        do Output.moveCursor(0,0);
+        do BoardValidator.printString("Error: There are more ships of size ");
+        do BoardValidator.printInt(size);
+        do BoardValidator.printString(" than required.");
+        return;
+    }
+
+    function void lessShipsThanRequired(int size) {
+        do Output.moveCursor(0,0);
+        do BoardValidator.printString("Error: There are less ships of size ");
+        do BoardValidator.printInt(size);
+        do BoardValidator.printString(" than required.");
+        return;
+    }
+
+    /**
+        Memory friendly string print
+    */
+    function void printString(String s1) {
+        do Output.printString(s1);
+        do s1.dispose();
+        return;
+    }
+
+    /**
+        Memory friendly integer print
+    */
+    function void printInt(int i) {
+        var String number;
+        let number = String.new(50);
+        do number.setInt(i);
+        do Output.printString(number);
+        do number.dispose();
+        return;
+    }
+
+     function boolean validForVerticalShipPlacement(Board board, int x, int y, int length) {
+        var int i;
+        if ((x + length) > board.getRows()) {
+            return false;
+        }
+        let i = 0;
+        while (i < length) {
+            if (BoardValidator.hasNeighbour(board, x + i, y)) {
+                return false;
+            }
+            let i = i + 1;
+        }
+        return true;
+    }
+
+    function boolean validForHorizontalShipPlacement(Board board, int x, int y, int length) {
+        var int i;
+        if ((y + length) > board.getColumns()) {
+            return false;
+        }
+        let i = 0;
+        while (i < length) {
+            if (BoardValidator.hasNeighbour(board, x, y + i)) {
+                return false;
+            }
+            let i = i + 1;
+        }
+        return true;
+    }
+
+    function boolean hasNeighbour(Board board, int x, int y) {
+        var int i, j;
+        let i = -1;
+        while (i < 2) {
+            let j = -1;
+            while (j < 2) {
+                if ((x + i > -1) & (y + j > -1) & (x + i < board.getRows()) & (y + j < board.getColumns())) {
+                    if (board.squareFilled(x + i,y + j)) {
+                        return true;
+                    }
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        return false;
+    }
+}

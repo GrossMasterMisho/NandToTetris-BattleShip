@@ -1,0 +1,25 @@
+class Processing {
+    field Game game;
+
+    constructor Processing new() {
+        let game = Game.new();
+        return this;
+    }
+
+    method void dispose() {
+        do game.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void run() {
+        var char c;
+        do game.run();
+        while (~(c = 32)) {
+            let c = Keyboard.keyPressed();
+            do Sys.wait(5);
+        }
+    
+        return;
+    }
+}

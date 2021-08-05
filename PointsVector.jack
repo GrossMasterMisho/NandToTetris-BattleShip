@@ -1,0 +1,91 @@
+class PointsVector {
+    field Array vector;
+    field int logLen, allocLen;
+
+    constructor PointsVector new() {
+        let allocLen = 4;
+        let vector = Array.new(allocLen);
+        let logLen = 0;
+        return this;
+    }
+
+    method void dispose() {
+        do disposePointsArray(vector);
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void disposePointsArray(Array arr) {
+        var Point p;
+        var int i;
+        let i = 0;
+        while (i < logLen) {
+            let p = arr[i];
+            do p.dispose();
+            let i = i + 1;
+        }
+        do arr.dispose();
+        return;
+    }
+
+    method int getSize() {
+        return logLen;
+    }
+
+    method void add(Point p) {
+        if (logLen = allocLen) {
+            do grow();
+        }
+        let vector[logLen] = p;
+        let logLen = logLen + 1;
+        return;
+    }
+
+    method Point get(int i) {
+        return vector[i];
+    }
+
+    method void remove(int index) {
+        var Point p;
+        var int i;
+        let i = index;
+        if (~(index < logLen)) {
+            return;
+        }
+        let p = get(index);
+        do p.dispose();
+        let logLen = logLen - 1;
+        while (i < logLen) {
+            let vector[i] = vector[i+1];
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method int find(Point p) {
+        var int i;
+        let i = 0;
+        while (i < logLen) {
+            if (p.equals(vector[i])) {
+                return i;
+            }
+            let i = i + 1;
+        }
+        return -1;
+    }
+
+    method void grow() {
+        var Array newVector;
+        var int i;
+        let i = 0;
+        let allocLen = allocLen * 2;
+        let newVector = Array.new(allocLen);
+        while (i < logLen) {
+            let newVector[i] = vector[i];
+            let i = i + 1;
+        }
+        do vector.dispose();
+        let vector = newVector;
+        return;
+    }
+}

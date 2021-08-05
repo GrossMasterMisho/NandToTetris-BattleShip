@@ -1,0 +1,179 @@
+class Game {
+    field Board playerBoard, computerBoard;
+    field Computer computer;
+
+    constructor Game new() {
+        let playerBoard = Board.new(10, 10);
+        let computerBoard = Board.new(10, 10);
+        let computer = Computer.new(computerBoard.getRows(), computerBoard.getColumns());
+        return this;
+    }
+
+    method void run() {
+        do Screen.clearScreen();
+        do init();
+        do playGame();
+        return ;
+    }
+
+    method void dispose() {
+        do playerBoard.dispose();
+        do computerBoard.dispose();
+        do computer.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void init() {
+        do playerBoard.draw(20, 30);
+        do computerBoard.draw(280, 30);
+        return ;
+    }
+
+    method void playGame() {
+        var boolean gameOn;
+        var boolean winnerIsPlayer;
+        let gameOn = true;
+        do placePlayersPieces();
+        do placeComputersPieces();
+        while (gameOn) {
+            do playersMove();
+            let gameOn = computerBoard.checkGameStatus();
+            let winnerIsPlayer = true;
+            if (gameOn) {
+                do computersMove();
+                let gameOn = playerBoard.checkGameStatus();
+                let winnerIsPlayer = false;
+            }
+        }
+        do Output.moveCursor(0,0);
+        do BoardValidator.printString("Winner is ");
+        if (winnerIsPlayer) {
+            do BoardValidator.printString("Player.");
+        } else {
+            do BoardValidator.printString("Computer.");
+        }
+        do BoardValidator.printString(" Press space to restart.");
+        return ;
+    }
+
+    method void placePlayersPieces() {
+        var boolean stopSign;
+        var char c;
+        let stopSign = false;
+        do playerBoard.setCurrentPointer(0, 0);
+        while (~stopSign) {
+            let c = 0;
+            while (c = 0) {
+                let c = Keyboard.keyPressed();
+                do Sys.wait(5);
+            }
+            do Output.moveCursor(0,0);
+            do BoardValidator.printString("                                                                                           ");
+            if (c = 128) {
+                do playerBoard.placeShip();
+            }
+            do doMovement(playerBoard, c);
+            
+            if ((c = 83) | (c = 115)) {
+                if (BoardValidator.validate(playerBoard)){
+                    let stopSign = true;
+                    do playerBoard.setShips(BoardValidator.getShips(playerBoard));
+                    do playerBoard.clearCursor();
+                }
+            }
+            while (~(c = 0)) {
+                let c = Keyboard.keyPressed();
+                do Sys.wait(5);
+            }
+        }
+        return ;
+    }
+
+    method void doMovement(Board currentBoard, char c) {
+        if (c = 130) {
+            do currentBoard.moveLeft();
+        }
+        if (c = 131) {
+            do currentBoard.moveUp();
+        }
+        if (c = 132) {
+            do currentBoard.moveRight();
+        }
+        if (c = 133) {
+            do currentBoard.moveDown();
+        }
+        return;
+    }
+
+    method void placeComputersPieces() {
+        var Array ships;
+        var Point p;
+        let p = playerBoard.getLastMove();
+        do Randomizer.setSeed(p.getX(), p.getY());
+        do p.dispose();
+        let ships = computer.generateShips(computerBoard);
+        do computerBoard.setShips(ships);
+        return;
+    }
+
+    method void playersMove() {
+        var boolean stopSign;
+        var char c;
+        let stopSign = false;
+        do computerBoard.setCurrentPointer(0, 0);
+        do playerBoard.clearCursor();
+        while (~stopSign) {
+            let c = 0;
+            while (c = 0) {
+                let c = Keyboard.keyPressed();
+                do Sys.wait(5);
+            }
+
+            do doMovement(computerBoard, c);
+
+            if (c = 128) {
+                let stopSign = ~(computerBoard.moveMade());
+                if (~(computerBoard.checkGameStatus())) {
+                    return ;
+                }
+            }
+            
+            while (~(c = 0)) {
+                let c = Keyboard.keyPressed();
+                do Sys.wait(5);
+            }
+        }
+        return;
+    }
+
+    method void computersMove() {
+        var boolean stopSign;
+        var Point p;
+        var int random;
+        let stopSign = false;
+        do computerBoard.clearCursor();
+        while (~stopSign) {
+            let p = playerBoard.getLastMove();
+            do Randomizer.setSeed(p.getX(), p.getY());
+            do p.dispose();
+            let random = Randomizer.getRandom(computer.getPossibleMovesNum());
+            let p = computer.play(random);
+            do playerBoard.setCurrentPointer(p.getX(), p.getY());
+            do p.dispose();
+            let stopSign = ~(playerBoard.moveMade());
+            if (~(playerBoard.checkGameStatus())) {
+                return ;
+            }
+            if (~stopSign) {
+                if (playerBoard.fatalShot()) {
+                    do computer.shipHasBeenDestroyed(playerBoard.getShotShip());
+                } else {
+                    do computer.shipHasBeenInjured(playerBoard.getLastMove());
+                }
+            }
+            do Sys.wait(500);
+        }
+        return;
+    }
+}

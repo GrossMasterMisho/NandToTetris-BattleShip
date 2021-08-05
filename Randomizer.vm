@@ -1,0 +1,45 @@
+function Randomizer.setSeed 0
+push argument 0
+push argument 1
+call Math.multiply 2
+push argument 1
+sub
+pop static 0
+push constant 0
+return
+function Randomizer.getRandom 1
+push static 0
+push constant 12134
+add
+pop local 0
+push local 0
+push argument 0
+call Randomizer.mod 2
+return
+function Randomizer.mod 0
+push argument 1
+push constant 0
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
+push argument 0
+push argument 1
+lt
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push argument 0
+return
+label IF_FALSE1
+push argument 0
+push argument 0
+push argument 1
+call Math.divide 2
+push argument 1
+call Math.multiply 2
+sub
+return

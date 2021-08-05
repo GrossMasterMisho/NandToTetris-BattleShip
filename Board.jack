@@ -1,0 +1,209 @@
+class Board {
+
+    field BoardDrawer boardDrawer;
+    field Matrix boardMatrix, checkedPoints;
+    field int squareSize;
+    field int currentX, currentY;
+    field int leftTopX, leftTopY;
+    field int rows, cols;
+    field Array ships;
+    field int shipsLeft;
+
+    constructor Board new(int row, int column){
+      let boardMatrix = Matrix.new(row, column);
+      let checkedPoints = Matrix.new(row, column);
+      let squareSize = 20;
+      let boardDrawer = BoardDrawer.new(row, column, 20);
+      let currentX = 0;
+      let currentY = 0;
+      let rows = row;
+      let cols = column;
+      let shipsLeft = 7;
+      let ships = Array.new(shipsLeft);
+      return this;
+    }
+
+    method void dispose() {
+        var Ship ship;
+        var int i;
+        let i = 0;
+        while (i < 7) {
+            let ship = ships[i];
+            do ship.dispose();
+            let i = i + 1;
+        }
+        do ships.dispose();
+        do boardDrawer.dispose();
+        do checkedPoints.dispose();
+        do boardMatrix.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method int getRows() {
+        return rows;
+    }
+
+    method int getColumns() {
+        return cols;
+    }
+
+    method void setShips(Array shipsP) {
+        let ships = shipsP;
+        return;
+    }
+
+    // Draws board;
+    method void draw(int leftPixel, int topPixel) {
+        do boardDrawer.draw(leftPixel, topPixel);
+        return ;
+    }
+
+    //Select (x,y) square
+    method void setCurrentPointer(int x, int y) {
+        do boardDrawer.changePointer(currentX, currentY, x, y); 
+        let currentX = x;
+        let currentY = y;
+        return;
+    }
+
+    //Check if square is filled;
+    method boolean squareFilled(int x, int y) {
+        return boardMatrix.get(x, y);
+    }
+
+    method void moveUp() {
+        if (~(currentX = 0 )) {
+            do setCurrentPointer(currentX - 1, currentY);
+        }
+        return;
+    }
+
+    method void moveDown() {
+        if (~(currentX = (rows - 1) )) {
+            do setCurrentPointer(currentX + 1, currentY);
+        }
+        return;
+    }
+
+    method void moveLeft() {
+        if (~(currentY = 0 )) {
+            do setCurrentPointer(currentX, currentY - 1);
+        }
+        return;
+    }
+
+    method void moveRight() {
+        if (~(currentY = (cols - 1) )) {
+            do setCurrentPointer(currentX, currentY + 1);
+        }
+        return;
+    }
+
+    method void placeShip() {
+        var boolean color;
+        let color = ~(boardMatrix.get(currentX, currentY)); 
+        do boardMatrix.set(currentX, currentY, color);
+        do boardDrawer.fillSquare(color, currentX, currentY);
+        return;
+    }
+
+    method boolean checkGameStatus() {
+        return ~(shipsLeft = 0);
+    }
+
+    method void clearCursor() {
+        do boardDrawer.clearCursor(currentX, currentY);
+        return;
+    }
+
+    method boolean moveMade() {
+        var boolean isFilled;
+        var Ship ship;
+        if (checkedPoints.get(currentX, currentY)) {
+            return true;
+        }
+        let isFilled = boardMatrix.get(currentX, currentY);
+        do checkedPoints.set(currentX, currentY, true);
+        if (isFilled) {
+            let ship = getShotShip();
+            do ship.shoot(currentX, currentY);
+            if (ship.isSunk()) {
+                do boardDrawer.drawSunkShip(ship.getPoints(), ship.getLength());
+                let shipsLeft = shipsLeft - 1;
+            } else {
+                do boardDrawer.drawExclamation(currentX, currentY);
+            }
+            do boardMatrix.set(currentX, currentY, false);
+            return true;
+        } else {
+            do boardDrawer.drawHashtag(currentX, currentY);
+            return false;
+        }
+    }
+
+    //Get ship which has been shot recently;
+    method Ship getShotShip() {
+        var Ship ship;
+        var int i;
+        let i = 0;
+        while (i < 7) {
+            let ship = ships[i];
+            if (ship.containsPoint(currentX, currentY)) {
+                return ship;
+            }
+            let i = i + 1;
+        }
+        return null;
+    }
+
+    method boolean fatalShot() {
+        var Ship ship;
+        let ship = getShotShip();
+        return ship.isSunk();
+    }
+
+    method Point getLastMove() {
+        return Point.new(currentX, currentY);
+    }
+
+    method void placeSingleShip(Ship ship) {
+        var Array points;
+        var Point p;
+        var int i;
+        let i = 0;
+        let points = ship.getPoints();
+        while (i < ship.getLength()) {
+            let p = points[i];
+            do boardMatrix.set(p.getX(), p.getY(), true);
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method PointsVector generateValidPointsForShip(int length, boolean isVertical) {
+        var PointsVector validPoints;
+        var int i, j;
+        let validPoints = PointsVector.new();
+        let i = 0;
+        while (i < rows) {
+            let j = 0;
+            while (j < cols) {
+                if (isVertical) {
+                    if (BoardValidator.validForVerticalShipPlacement(this, i, j, length)) {
+                        do validPoints.add(Point.new(i, j));
+                    }
+                } else {
+                    if (BoardValidator.validForHorizontalShipPlacement(this, i, j, length)) {
+                        do validPoints.add(Point.new(i, j));
+                    }
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        return validPoints;
+    }
+
+   
+} 

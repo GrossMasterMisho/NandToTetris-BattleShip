@@ -1,0 +1,118 @@
+class Ship {
+    field int length, pointsLeft;
+    field boolean isVertical;
+    field int leftBorder, topBorder;
+    field Array points;
+
+    constructor Ship new(int lengthP, int leftBorderP, int topBorderP, boolean isVerticalP) {
+        let length = lengthP;
+        let pointsLeft = length;
+        let leftBorder = leftBorderP;
+        let topBorder = topBorderP;
+        let isVertical = isVerticalP;
+        let points = Array.new(length);
+        do generatePoints();
+        return this;
+    }
+
+    method void dispose() {
+        var Point point;
+        var int i;
+        let i = 0;
+        while (i < length) {
+            let point = points[i];
+            do point.dispose();
+            let i = i + 1;
+        }
+        do points.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    //All possible points at the start of the game;
+    method void generatePoints() {
+        var int i;
+        let i = 0;
+        if (isVertical) {
+            while (i < length) {
+                let points[i] = Point.new(leftBorder + i, topBorder);
+                let i = i + 1;
+            }
+        } else {
+            while (i < length) {
+                let points[i] = Point.new(leftBorder,i + topBorder);
+                let i = i + 1;
+            }
+        } 
+        return;
+    }
+    
+    //Update shot point;
+    method void shoot(int x, int y) {
+        var Point p;
+        var int i;
+        let i = 0;
+        while (i < length) {
+            let p = points[i];
+            if ((p.getX() = x) & (p.getY() = y)) {
+                if (p.getShot()) {
+                    return;
+                }
+                do p.setShot(true);
+                let pointsLeft = pointsLeft - 1;
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method int getLength() {
+        return length;
+    }
+
+    method int getStartX() {
+        return leftBorder;
+    }
+
+    method int getStartY() {
+        return topBorder;
+    }
+
+    method int getEndX() {
+        if (isVertical) {
+            return leftBorder + 1;
+        }
+        return leftBorder + length;
+    }
+
+    method int getEndY() {
+        if (isVertical) {
+            return topBorder + length;
+        }
+        return topBorder + 1;
+    }
+
+    method Array getPoints() {
+        return points;
+    }
+
+    method boolean isSunk() {
+        return (pointsLeft = 0);
+    }
+
+    method boolean containsPoint(int x, int y) {
+        var Point p;
+        var int i;
+
+        let i = 0;
+        while (i < length) {
+            let p = points[i];
+            if ((p.getX() = x) & (p.getY() = y)) {
+                return true;
+            }
+            let i = i + 1;
+        }
+        return false;
+    }
+
+}

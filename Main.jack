@@ -1,0 +1,13 @@
+class Main {
+  
+    function void main() {
+        var Processing processing;
+        while (true) {
+            let processing = Processing.new();
+            do processing.run();
+            do processing.dispose();
+        }
+        return;
+    }
+   
+}

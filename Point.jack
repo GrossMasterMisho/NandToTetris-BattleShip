@@ -1,0 +1,48 @@
+class Point {
+    field int x, y;
+    field boolean shot;
+
+    constructor Point new(int xP, int yP) {
+        let x = xP;
+        let y = yP;
+        let shot = false;
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void setX(int xP) {
+        let x = xP;
+        return;
+    }
+
+    method int getX() {
+        return x;
+    }
+
+    method void setY(int yP) {
+        let y = yP;
+        return;
+    }
+
+    method int getY() {
+        return y;
+    }
+
+    method void setShot(boolean shotP) {
+        let shot = shotP;
+        return;
+    }
+
+    method boolean getShot() {
+        return shot;
+    }
+
+    method boolean equals(Point p) {
+        return (x = p.getX()) & (y = p.getY());
+    }
+
+}

@@ -1,0 +1,221 @@
+class Computer {
+    field PointsVector leftPoints, bestMoves;
+    field int rows, cols;
+    field Point lastShotPoint;
+
+    constructor Computer new(int row, int col) {
+        let rows = row;
+        let cols = col;
+        let leftPoints = PointsVector.new();
+        let bestMoves = PointsVector.new();
+        let lastShotPoint = Point.new(-1, -1);
+        do fillLeftPoints();
+        return this;
+    }
+
+    method void dispose() {
+        do lastShotPoint.dispose();
+        do leftPoints.dispose();
+        do bestMoves.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method int getPossibleMovesNum() {
+        return leftPoints.getSize();
+    }
+
+    method boolean hasBestMoves() {
+        return (bestMoves.getSize() > 0);
+    }
+
+    method void fillLeftPoints() {
+        var int i, j;
+        let i = 0;
+        while (i < rows) {
+            let j = 0;
+            while (j < cols) {
+                do leftPoints.add(Point.new(i, j));
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method Array generateShips(Board board) {
+        var Array ships;
+        var boolean vertical;
+        var int random;
+
+        let ships = Array.new(7);
+        let random = Randomizer.getRandom(7);
+        let vertical = (Randomizer.mod(random, 2) = 0);
+
+        do Output.moveCursor(0, 0);
+        let ships[0] = generateSingleShip(board, 5, vertical);
+        let ships[1] = generateSingleShip(board, 4, ~vertical);
+        let ships[2] = generateSingleShip(board, 3, vertical);
+        let ships[3] = generateSingleShip(board, 2, ~vertical);
+        let ships[4] = generateSingleShip(board, 2, vertical);
+        let ships[5] = generateSingleShip(board, 1, ~vertical);
+        let ships[6] = generateSingleShip(board, 1, vertical);
+
+        return ships; 
+    }
+
+    method Ship generateSingleShip(Board board, int length, boolean vertical) {
+        var Ship ship;
+        var PointsVector validPoints;
+        var Point p;
+        var int random;
+
+        let validPoints = board.generateValidPointsForShip(length, vertical);
+        let random = Randomizer.getRandom(validPoints.getSize());
+        let p = validPoints.get(random);
+        let ship = Ship.new(length, p.getX(), p.getY(), vertical);
+
+        do board.placeSingleShip(ship);
+       
+        do p.dispose();
+        do validPoints.dispose();
+        return ship;
+    }
+
+    method Point play(int random){
+        var int index;
+        var Point p;
+        if (bestMoves.getSize() > 0) {
+            let p = bestMoves.get(0);
+            let p = copy(p);
+            do bestMoves.remove(0);
+            let index = leftPoints.find(p);
+            do leftPoints.remove(index);
+            return p;
+        }
+        let p = leftPoints.get(random);
+        let p = copy(p);
+        do leftPoints.remove(random);
+        return p;
+    }
+
+    method void shipHasBeenDestroyed(Ship ship) {
+        var Array points;
+        var int i;
+        let i = 0;
+        let points = ship.getPoints();
+        while (i < ship.getLength()) {
+            do filterAllNeighbouringPoints(points[i]);
+            let i = i + 1;
+        }
+        do bestMoves.dispose();
+        let bestMoves = PointsVector.new();
+        return;
+    }
+
+    method void filterAllNeighbouringPoints(Point p) {
+        var Point neighbour;
+        var int i, j, index;
+        let i = -1;
+        while (i < 2) {
+            let j = -1;
+            while (j < 2) {
+                let neighbour = Point.new(p.getX() + i, p.getY() + j);
+                let index = leftPoints.find(neighbour);
+                if (~(index = -1)) {
+                    do leftPoints.remove(index);
+                }
+                do neighbour.dispose();
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void shipHasBeenInjured(Point p) {
+        do filterAllDiagonalPoints(p);
+        if (bestMoves.getSize() > 0) {
+            let bestMoves = updateBestMoves(p);
+        } else {
+            do bestMoves.dispose(); 
+            let bestMoves = findBestMoves(p);
+        }
+        do lastShotPoint.dispose();
+        let lastShotPoint = p;
+        return;
+    }
+
+    method PointsVector findBestMoves(Point p) {
+        var PointsVector newBestMoves;
+        var Point point;
+        var int i, j;
+        let newBestMoves = PointsVector.new();
+        let i = -1;
+        while (i < 2) {
+            let j = -1;
+            while (j < 2) {
+                if (((i + j) = -1) | ((i + j) = 1)) {
+                    let point = Point.new(p.getX() + i, p.getY() + j);
+                    if (~(leftPoints.find(point) = -1)) {
+                        do newBestMoves.add(point);
+                    } else {
+                        do point.dispose();
+                    }
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        return newBestMoves;
+    }
+
+    method PointsVector updateBestMoves(Point p) {
+        var PointsVector newBestMoves, updatedBestMoves;
+        var Point point;
+        var int i, j;
+        let updatedBestMoves = PointsVector.new();
+        let i = 0;
+        while (i < bestMoves.getSize()) {
+            let point = bestMoves.get(i);
+            if (~(leftPoints.find(point) = -1)) {
+                do updatedBestMoves.add(copy(point));
+            }
+            let i = i + 1;
+        }
+        let newBestMoves = findBestMoves(p);
+        let i = 0;
+        while (i < newBestMoves.getSize()) {
+            let point = newBestMoves.get(i);
+            do updatedBestMoves.add(copy(point));
+            let i = i + 1;
+        }
+        do newBestMoves.dispose();
+        do bestMoves.dispose();
+        return updatedBestMoves;
+    }
+
+    method void filterAllDiagonalPoints(Point p) {
+        var Point neighbour;
+        var int i, j, index;
+        let i = -1;
+        while (i < 2) {
+            let j = -1;
+            while (j < 2) {
+                let neighbour = Point.new(p.getX() + i, p.getY() + j);
+                let index = leftPoints.find(neighbour);
+                if (~(index = -1)) {
+                    do leftPoints.remove(index);
+                }
+                do neighbour.dispose();
+                let j = j + 2;
+            }
+            let i = i + 2;
+        }
+        return;
+    }
+
+    method Point copy(Point p) {
+        return Point.new(p.getX(), p.getY());
+    }
+}

@@ -1,0 +1,185 @@
+class BoardDrawer {
+    field int leftTopX, leftTopY, row, column, squareSize;
+
+    constructor BoardDrawer new(int rows, int cols, int size) {
+        let row = rows;    
+        let column = cols;
+        let squareSize = size;    
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /**
+        Draws border arround (x,y) square, showing that this square is selected;
+    */
+    function void drawSquareBorders(int x, int y, int size) {
+        do Screen.drawLine(x, y, x, y + size);
+        do Screen.drawLine(x, y, x + size, y);
+        do Screen.drawLine(x + size, y, x + size, y + size);
+        do Screen.drawLine(x, y + size, x + size, y + size);
+        return ;
+    }
+
+    /**
+        Depending on color, removes or shows selection borders around (x, y) square;
+    */
+    method void drawBorders(int x, int y, boolean color) {
+        do Screen.setColor(color);
+        do BoardDrawer.drawSquareBorders(leftTopX + (y * squareSize) - 1, leftTopY + (x * squareSize) - 1, squareSize + 2);
+        return;
+    }
+
+    /**
+        Changes selected square;
+    */
+    method void changePointer(int currentX, int currentY, int x, int y) {
+        do drawBorders(currentX, currentY, false);
+        do cleanSideSquares(currentX, currentY);
+        do drawBorders(x, y, true);
+        return;
+    }
+
+    /**
+        Draws board using left-top corner coordinates;
+    */
+    method void draw(int leftPixel, int topPixel) {
+        var int i,j;
+        let leftTopX = leftPixel;
+        let leftTopY = topPixel;
+        do Screen.setColor(true);
+        while (i < row) {
+            while (j < column) {
+                do BoardDrawer.drawSquareBorders(leftPixel + (j * squareSize), topPixel + (i * squareSize), squareSize);
+                let j = j + 1;
+            }
+            let i = i + 1;
+            let j = 0;
+        }
+        return ;
+    }
+
+    /**
+        Redraws borders of neighbouring squares;
+    */
+    method void cleanSideSquares(int currentX, int currentY) {
+         do Screen.setColor(true);
+        if (currentY > 0) {
+            do BoardDrawer.drawSquareBorders(leftTopX + ((currentY - 1) * squareSize), leftTopY + (currentX * squareSize), squareSize);
+        }
+        if (currentX > 0) {
+            do BoardDrawer.drawSquareBorders(leftTopX + ((currentY) * squareSize), leftTopY + ((currentX - 1) * squareSize), squareSize);
+        }
+
+        if (currentY < (column - 1)) {
+            do BoardDrawer.drawSquareBorders(leftTopX + ((currentY + 1) * squareSize), leftTopY + (currentX * squareSize), squareSize);
+        }
+
+        if (currentX < (row - 1)) {
+            do BoardDrawer.drawSquareBorders(leftTopX + ((currentY) * squareSize), leftTopY + ((currentX + 1) * squareSize), squareSize);
+        }
+        return;
+    }
+
+    /**
+        Draws hashtag symbol in the square;
+    */
+    method void drawHashtag(int currentX, int currentY) {
+        var int xt, yt, xb, yb;
+        do fillSquare(false, currentX, currentY);
+        do Screen.setColor(true);
+        let xt = leftTopX + (currentY * squareSize) + 5;
+        let xb = xt + 2;
+        let yt = leftTopY + (currentX * squareSize) + 2;
+        let yb = yt + 15;
+        do Screen.drawRectangle(xt, yt, xb, yb);
+
+        let xt = xb + 5;
+        let xb = xt + 2;
+        do Screen.drawRectangle(xt, yt, xb, yb);
+
+        let xt = leftTopX + (currentY * squareSize) + 2;
+        let xb = xt + 15;
+        let yt = leftTopY + (currentX * squareSize) + 5;
+        let yb = yt + 2;
+        do Screen.drawRectangle(xt, yt, xb, yb);
+
+        let yt = yb + 5;
+        let yb = yt + 2;
+        do Screen.drawRectangle(xt, yt, xb, yb);
+        return;
+    }
+
+    /**
+        Draws exclamation symbol in the square;
+    */
+    method void drawExclamation(int currentX, int currentY) {
+        var int xt, yt, xb, yb;
+        do fillSquare(false, currentX, currentY);
+        do Screen.setColor(true);
+        let xt = leftTopX + (currentY * squareSize) + (squareSize / 2) - 1;
+        let xb = xt + 2;
+        let yt = leftTopY + (currentX * squareSize) + 2;
+        let yb = yt + 10;
+        do Screen.drawRectangle(xt, yt, xb, yb);
+        let yt = yb + 2;
+        let xb = xt + 2;
+        let yb = yt + 2;
+        do Screen.drawRectangle(xt, yt, xb, yb);
+        return;
+    }
+
+    /**
+        Draws X symbol in the square;
+    */
+    method void drawX(int currentX, int currentY) {
+        var int xt, yt, xb, yb;
+        do fillSquare(false, currentX, currentY);
+        do Screen.setColor(true);
+        let xt = leftTopX + (currentY * squareSize);
+        let xb = xt + squareSize;
+        let yt = leftTopY + (currentX * squareSize);
+        let yb = yt + squareSize;
+
+        do Screen.drawLine(xt, yt, xb, yb);
+        do Screen.drawLine(xt, yb, xb, yt);
+        return;
+    }
+
+    /**
+        Removes selected square identifier;
+    */
+    method void clearCursor(int currentX, int currentY) {
+        do Screen.setColor(false);
+        do BoardDrawer.drawSquareBorders(leftTopX + (currentY * squareSize) - 1, leftTopY + (currentX * squareSize) - 1, squareSize + 2);
+        do cleanSideSquares(currentX, currentY);
+        return;
+    }
+
+    /**
+        Fills square with color;
+    */
+    method void fillSquare(boolean color, int x , int y) {
+        do Screen.setColor(color);
+        do Screen.drawRectangle(leftTopX + (y * squareSize) + 2, leftTopY + (x * squareSize) + 2, leftTopX + squareSize + (y * squareSize) - 2, leftTopY + squareSize +  (x * squareSize) - 2 );
+        return;
+    }
+
+    /**
+        Redraws sunk ship with Xs;
+    */
+    method void drawSunkShip(Array points, int length) {
+        var Point p;
+        var int i;
+        let i = 0;
+        while (i < length) {
+            let p = points[i];
+            do drawX(p.getX(), p.getY());
+            let i = i + 1;
+        }
+        return;
+    }
+}

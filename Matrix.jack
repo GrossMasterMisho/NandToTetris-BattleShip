@@ -1,0 +1,65 @@
+class Matrix {
+    field Array matrix;
+    field int rows, columns;
+
+
+    constructor Matrix new(int row, int column) {
+        let rows = row;
+        let columns = column;
+        do initMatrix();
+        return this;
+    }
+
+    method void dispose() {
+        var Array column;
+        var int i;
+        let i = 0;
+        while (i < rows) {
+            let column = matrix[i];
+            do column.dispose();
+            let i = i + 1;
+        }
+        do matrix.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void initMatrix() {
+        var Array arr;
+        var int i, j;
+        let i = 0;
+        let matrix = Array.new(rows);
+        while (i < rows) {
+            let matrix[i] = Array.new(columns);
+            let arr = matrix[i];
+            let j = 0;
+            while (j < columns) {
+                let arr[j] = false;
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void set(int row, int col, boolean filled) {
+        var Array arr;
+        let arr = matrix[row];
+        let arr[col] = filled;
+        return;
+    }
+
+    method boolean get(int row, int col) {
+        var Array arr;
+        let arr = matrix[row];
+        return arr[col];
+    }
+
+    method int getRowNum() {
+        return rows;
+    }
+
+    method int getColumnNum() {
+        return columns;
+    }
+}
