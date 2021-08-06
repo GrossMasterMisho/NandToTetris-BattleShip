@@ -100,6 +100,7 @@ class Board {
         return;
     }
 
+    //Changing state of square color;
     method void placeShip() {
         var boolean color;
         let color = ~(boardMatrix.get(currentX, currentY)); 
@@ -108,6 +109,7 @@ class Board {
         return;
     }
 
+    //Game has finished or not;
     method boolean checkGameStatus() {
         return ~(shipsLeft = 0);
     }
@@ -117,6 +119,7 @@ class Board {
         return;
     }
 
+    //Move made; Returns true if shot has been successful
     method boolean moveMade() {
         var boolean isFilled;
         var Ship ship;
@@ -157,16 +160,19 @@ class Board {
         return null;
     }
 
+    //Returns true if last shot sunk the ship;
     method boolean fatalShot() {
         var Ship ship;
         let ship = getShotShip();
         return ship.isSunk();
     }
 
+    //Last move by player;
     method Point getLastMove() {
         return Point.new(currentX, currentY);
     }
 
+    //Places single ship on board and updates matrix;
     method void placeSingleShip(Ship ship) {
         var Array points;
         var Point p;
@@ -179,30 +185,6 @@ class Board {
             let i = i + 1;
         }
         return;
-    }
-
-    method PointsVector generateValidPointsForShip(int length, boolean isVertical) {
-        var PointsVector validPoints;
-        var int i, j;
-        let validPoints = PointsVector.new();
-        let i = 0;
-        while (i < rows) {
-            let j = 0;
-            while (j < cols) {
-                if (isVertical) {
-                    if (BoardValidator.validForVerticalShipPlacement(this, i, j, length)) {
-                        do validPoints.add(Point.new(i, j));
-                    }
-                } else {
-                    if (BoardValidator.validForHorizontalShipPlacement(this, i, j, length)) {
-                        do validPoints.add(Point.new(i, j));
-                    }
-                }
-                let j = j + 1;
-            }
-            let i = i + 1;
-        }
-        return validPoints;
     }
 
    

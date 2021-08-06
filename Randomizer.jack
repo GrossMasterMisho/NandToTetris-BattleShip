@@ -1,11 +1,13 @@
 class Randomizer {
     static int seed;
 
+    //Pseudo seed generation for random;
     function void setSeed(int x, int y) {
         let seed = x * y - y;
         return;
     }
 
+    //Pseudo random
     function int getRandom(int offset) {
         var int rand;
         let rand = seed + 12134;

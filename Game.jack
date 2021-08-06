@@ -23,13 +23,15 @@ class Game {
         do Memory.deAlloc(this);
         return;
     }
-
+    
+    //Draws boards on screen;
     method void init() {
         do playerBoard.draw(20, 30);
         do computerBoard.draw(280, 30);
         return ;
     }
 
+    //Playing
     method void playGame() {
         var boolean gameOn;
         var boolean winnerIsPlayer;
@@ -57,6 +59,9 @@ class Game {
         return ;
     }
 
+    /**
+        Player's ships placement; Moving with arrows, enter -> ships places, s or S -> Game started; 
+    */
     method void placePlayersPieces() {
         var boolean stopSign;
         var char c;
@@ -90,6 +95,7 @@ class Game {
         return ;
     }
 
+    //Given arrow calls corresponding move
     method void doMovement(Board currentBoard, char c) {
         if (c = 130) {
             do currentBoard.moveLeft();
@@ -106,6 +112,7 @@ class Game {
         return;
     }
 
+    //Placing computers pieces randomly
     method void placeComputersPieces() {
         var Array ships;
         var Point p;
@@ -115,8 +122,11 @@ class Game {
         let ships = computer.generateShips(computerBoard);
         do computerBoard.setShips(ships);
         return;
-    }
+    }  
 
+    /**
+        Players move. Arrows -> moving. Enter-> shoot;
+    */
     method void playersMove() {
         var boolean stopSign;
         var char c;
@@ -147,6 +157,7 @@ class Game {
         return;
     }
 
+    //Computer's move;
     method void computersMove() {
         var boolean stopSign;
         var Point p;

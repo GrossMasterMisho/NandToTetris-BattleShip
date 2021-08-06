@@ -29,6 +29,7 @@ class Computer {
         return (bestMoves.getSize() > 0);
     }
 
+    //Initializes leftPoints vector;
     method void fillLeftPoints() {
         var int i, j;
         let i = 0;
@@ -43,6 +44,7 @@ class Computer {
         return;
     }
 
+    //Generate ships randomly
     method Array generateShips(Board board) {
         var Array ships;
         var boolean vertical;
@@ -64,13 +66,14 @@ class Computer {
         return ships; 
     }
 
+    //Generate one ship randomly
     method Ship generateSingleShip(Board board, int length, boolean vertical) {
         var Ship ship;
         var PointsVector validPoints;
         var Point p;
         var int random;
 
-        let validPoints = board.generateValidPointsForShip(length, vertical);
+        let validPoints = BoardValidator.generateValidPointsForShip(board, length, vertical);
         let random = Randomizer.getRandom(validPoints.getSize());
         let p = validPoints.get(random);
         let ship = Ship.new(length, p.getX(), p.getY(), vertical);
@@ -82,6 +85,7 @@ class Computer {
         return ship;
     }
 
+    //Computer making move based on last history or randomly
     method Point play(int random){
         var int index;
         var Point p;
@@ -99,6 +103,7 @@ class Computer {
         return p;
     }
 
+    //Last shot sunk ship
     method void shipHasBeenDestroyed(Ship ship) {
         var Array points;
         var int i;
@@ -113,6 +118,7 @@ class Computer {
         return;
     }
 
+    //Removes points where there can't be placed anything
     method void filterAllNeighbouringPoints(Point p) {
         var Point neighbour;
         var int i, j, index;
@@ -133,6 +139,7 @@ class Computer {
         return;
     }
 
+    //Last shot injured ship
     method void shipHasBeenInjured(Point p) {
         do filterAllDiagonalPoints(p);
         if (bestMoves.getSize() > 0) {
@@ -146,6 +153,7 @@ class Computer {
         return;
     }
 
+    //If ship got injured, next moves are calculated to sink this ship; 
     method PointsVector findBestMoves(Point p) {
         var PointsVector newBestMoves;
         var Point point;
@@ -170,6 +178,7 @@ class Computer {
         return newBestMoves;
     }
 
+    //If 2 or more parts of ship have been destroyed, computer gets direction and updates next moves;
     method PointsVector updateBestMoves(Point p) {
         var PointsVector newBestMoves, updatedBestMoves;
         var Point point;
@@ -195,6 +204,7 @@ class Computer {
         return updatedBestMoves;
     }
 
+    //Removes all diagonal points where nothing can be places;
     method void filterAllDiagonalPoints(Point p) {
         var Point neighbour;
         var int i, j, index;
@@ -215,6 +225,7 @@ class Computer {
         return;
     }
 
+    //Point copy
     method Point copy(Point p) {
         return Point.new(p.getX(), p.getY());
     }

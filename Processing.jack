@@ -12,6 +12,7 @@ class Processing {
         return;
     }
 
+    //Runs game, waits for space -> restart;
     method void run() {
         var char c;
         do game.run();
